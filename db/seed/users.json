@@ -3,18 +3,24 @@
     "_id": "333333333333333333333300",
     "fullname": "Bob User",
     "username": "bobuser",
-    "password": "password"
+    "password": "$2a$10$T.QsIJITsx6cohMiWnzsx.H2JqsP/UgoJIGutgNQgrOP5.gdiHABm"
   },
   {
     "_id": "333333333333333333333301",
     "fullname": "Pat User",
     "username": "patuser",
-    "password": "password"
+    "password": "$2a$10$D.UR.hFtKLv/WQambhk83.l2Tz9L.LvQhUF327rbfWlMTjkIOIg.C"
   },
   {
     "_id": "333333333333333333333302",
     "fullname": "Jane User",
     "username": "janeuser",
-    "password": "password"
+    "password": "$2a$10$TaFnzPM4izKeNcsJfhRiG.cRYBBq0fOIklYMKZpbkCALP0rbSW.qy"
+  },
+  {
+    "_id": "333333333333333333333303",
+    "fullname": "Jane User",
+    "username": "kevinuser",
+    "password": "$2a$10$WoPLEi.T57Q9uxkoq/e1aenSYApf4zA8NJE4aH47.rTTPor5ghymO"
   }
 ]
