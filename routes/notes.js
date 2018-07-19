@@ -5,6 +5,42 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 
 const Note = require('../models/note');
+const Folder = require('../models/note');
+const Tag = require('../models/note');
+
+function validateFolderId(folderId, userId){
+  if (!folderId) {
+    return Promise.resolve();
+  }
+  return Folder.findOne({_id: folderId, userId})
+    .then(count => {
+      if(!count){
+        // const err = new Error ('This `folderId` is not valid');
+        // console.log('==============',2);
+        // err.status = 400;
+        return Promise.reject('This `folderId` is not valid');
+      }
+    });
+}
+
+function validateTagId(tags =[], userId){
+  console.log('22222222', tags);
+  if (!tags) {
+    return Promise.resolve();
+  }
+  return Tag.find(
+    {$and: 
+      [{_id: {$in: tags}, userId}]
+    })
+    .then(result => {
+      console.log('111111111111111111111111111111', result);
+      if(result.length === tags.length){
+        // const err = new Error ();
+        // err.status = 400;
+        return Promise.reject('This `tagId` is not valid');
+      }
+    });
+}
 
 const router = express.Router();
 
@@ -67,45 +103,100 @@ router.get('/:id', (req, res, next) => {
 
 /* ========== POST/CREATE AN ITEM ========== */
 router.post('/', (req, res, next) => {
-  const { title, content, folderId, tags = [] } = req.body;
+  const { title, content, folderId, tags = []} = req.body;
   const userId = req.user.id;
+  
+  console.log('waef89emfpoawemfpowe', tags.length);
 
   /***** Never trust users - validate input *****/
+  if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
+    const err = new Error('The `folderId` is not valid');
+    err.status = 400;
+    return Promise.reject(err);
+  }
+  // if (tags && !mongoose.Types.ObjectId.isValid(tags)) {
+  //   const err = new Error('The `tagId` is not valid');
+  //   err.status = 400;
+  //   return Promise.reject(err);
+  // }
+
   if (!title) {
     const err = new Error('Missing `title` in request body');
     err.status = 400;
     return next(err);
   }
-
-  if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
-    const err = new Error('The `folderId` is not valid');
-    err.status = 400;
-    return next(err);
-  }
+ 
+  // if(mongoose.Types.ObjectId.isValid(folderId)){
+  //   newNote.folderId = folderId;
+  // }
+  // if(tags.length > 0 ){
+  //   for(let i = 0; i < tags.length; i++){
+  //     if(!mongoose.Types.ObjectId.isValid(tags[i])){
+  //       const err = new Error ('Invalid `tagId` in request body');
+  //       err.status = 400;
+  //       return next(err)
+  //     }
+  //   }
+  // }
 
   if (tags) {
+    console.log('====================-------',tags);
     tags.forEach((tag) => {
+      console.log('======================00',tag);
       if (!mongoose.Types.ObjectId.isValid(tag)) {
+        console.log('==================',tag);
+        console.log('====================4234==',tag.tagId);
         const err = new Error('The tags `id` is not valid');
         err.status = 400;
         return next(err);
       }
     });
   }
-
-  const newNote = { title, content, folderId, tags, userId };
-
-  Note.create(newNote)
+  const newNote = { title, content, tags, userId };
+  Promise.all([
+    validateFolderId(folderId, userId),
+    validateTagId(tags, userId)
+  ])
+    .then(() => {
+      return Note.create(newNote);
+    })
     .then(result => {
+      // if(result){
       res
         .location(`${req.originalUrl}/${result.id}`)
         .status(201)
         .json(result);
+      // }
+      // else{
+      //   next();
+      // }
     })
     .catch(err => {
+      if (err === 'This `folderId` is not valid') {
+        err = new Error('The `folderId` is not valid');
+        err.status = 400;
+      }
+      if (err === 'This `tagId` is not valid') {
+        err = new Error('This `tagId` is not valid');
+        err.status = 400;
+      }
       next(err);
     });
 });
+
+ 
+
+// Note.create(newNote)
+//   .then(result => {
+//     res
+//       .location(`${req.originalUrl}/${result.id}`)
+//       .status(201)
+//       .json(result);
+//   })
+//   .catch(err => {
+//     next(err);
+//   });
+
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
