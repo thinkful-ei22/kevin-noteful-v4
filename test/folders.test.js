@@ -138,7 +138,7 @@ describe('Noteful API - Folders', function () {
         .send(newItem)
         .then(function (res) {
           body = res.body;
-          console.log('--------------', res.body);
+          // console.log('--------------', res.body);
           expect(res).to.have.status(201);
           expect(res).to.have.header('location');
           expect(res).to.be.json;
