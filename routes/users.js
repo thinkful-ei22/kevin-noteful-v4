@@ -8,7 +8,7 @@ const router = express.Router();
 
 // post endpoint
 router.post('/', (req, res, next) =>{
-  const {fullname, username, password} = req.body;
+  let {fullname, username, password} = req.body;
 
   const requiredFields = ['username', 'password'];
   const missingField = requiredFields.find(field => !(field in req.body));
@@ -16,8 +16,8 @@ router.post('/', (req, res, next) =>{
   if (missingField) {
     return res.status(422).json({
       code: 422,
-      reason: 'ValidationError',
-      message: 'Missing field',
+      reason: 'Validation Error',
+      message: `Missing ${missingField} in request body`,
       location: missingField
     });
   }
@@ -30,12 +30,12 @@ router.post('/', (req, res, next) =>{
   if (nonStringField) {
     return res.status(422).json({
       code: 422,
-      reason: 'ValidationError',
+      reason: 'Validation Error',
       message: 'Incorrect field type: expected string',
       location: nonStringField
     });
   }
-
+  fullname = fullname.trim();
   const explicityTrimmedFields = ['username', 'password'];
   const nonTrimmedField = explicityTrimmedFields.find(
     field => req.body[field].trim() !== req.body[field]
@@ -44,7 +44,7 @@ router.post('/', (req, res, next) =>{
   if (nonTrimmedField) {
     return res.status(422).json({
       code: 422,
-      reason: 'ValidationError',
+      reason: 'Validation Error',
       message: 'Cannot start or end with whitespace',
       location: nonTrimmedField
     });
@@ -73,7 +73,7 @@ router.post('/', (req, res, next) =>{
   if (tooSmallField || tooLargeField) {
     return res.status(422).json({
       code: 422,
-      reason: 'ValidationError',
+      reason: 'Validation Error',
       message: tooSmallField
         ? `Must be at least ${sizedFields[tooSmallField]
           .min} characters long`
@@ -107,7 +107,7 @@ router.post('/', (req, res, next) =>{
     .catch(err => {
       if (err.code === 11000){
         err = new Error ('The username already exists');
-        err.status = 400;
+        err.status = 422;
       }
       next(err);
     });

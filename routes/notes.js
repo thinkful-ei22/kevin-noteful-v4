@@ -5,27 +5,26 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 
 const Note = require('../models/note');
-const Folder = require('../models/note');
-const Tag = require('../models/note');
+const Folder = require('../models/folder');
+const Tag = require('../models/tag');
 
 function validateFolderId(folderId, userId){
-  if (!folderId) {
+  if (folderId === undefined) {
     return Promise.resolve();
   }
-  return Folder.findOne({_id: folderId, userId})
+  return Folder.count({_id: folderId, userId})
     .then(count => {
-      if(!count){
-        // const err = new Error ('This `folderId` is not valid');
-        // console.log('==============',2);
-        // err.status = 400;
-        return Promise.reject('This `folderId` is not valid');
+      console.log('ttttttttttttttttttttt', count);
+      if(count === 0){
+        const err = new Error ('This `folderId` is not valid');
+        err.status = 400;
+        return Promise.reject(err);
       }
     });
 }
 
 function validateTagId(tags =[], userId){
-  console.log('22222222', tags);
-  if (!tags) {
+  if (!Array.isArray(tags)) {
     return Promise.resolve();
   }
   return Tag.find(
@@ -33,11 +32,11 @@ function validateTagId(tags =[], userId){
       [{_id: {$in: tags}, userId}]
     })
     .then(result => {
-      console.log('111111111111111111111111111111', result);
-      if(result.length === tags.length){
-        // const err = new Error ();
-        // err.status = 400;
-        return Promise.reject('This `tagId` is not valid');
+      // console.log('111111111111111111111111111111', result);
+      if(result.length !== tags.length){
+        const err = new Error ('This `tagId` is not valid');
+        err.status = 400;
+        return Promise.reject(err);
       }
     });
 }
@@ -105,14 +104,12 @@ router.get('/:id', (req, res, next) => {
 router.post('/', (req, res, next) => {
   const { title, content, folderId, tags = []} = req.body;
   const userId = req.user.id;
-  
-  console.log('waef89emfpoawemfpowe', tags.length);
 
   /***** Never trust users - validate input *****/
   if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
-    return Promise.reject(err);
+    return next(err);
   }
   // if (tags && !mongoose.Types.ObjectId.isValid(tags)) {
   //   const err = new Error('The `tagId` is not valid');
@@ -126,33 +123,17 @@ router.post('/', (req, res, next) => {
     return next(err);
   }
  
-  // if(mongoose.Types.ObjectId.isValid(folderId)){
-  //   newNote.folderId = folderId;
-  // }
-  // if(tags.length > 0 ){
-  //   for(let i = 0; i < tags.length; i++){
-  //     if(!mongoose.Types.ObjectId.isValid(tags[i])){
-  //       const err = new Error ('Invalid `tagId` in request body');
-  //       err.status = 400;
-  //       return next(err)
-  //     }
-  //   }
-  // }
-
   if (tags) {
-    console.log('====================-------',tags);
     tags.forEach((tag) => {
-      console.log('======================00',tag);
       if (!mongoose.Types.ObjectId.isValid(tag)) {
         console.log('==================',tag);
-        console.log('====================4234==',tag.tagId);
         const err = new Error('The tags `id` is not valid');
         err.status = 400;
         return next(err);
       }
     });
   }
-  const newNote = { title, content, tags, userId };
+  const newNote = { title, content, tags, userId, folderId };
   Promise.all([
     validateFolderId(folderId, userId),
     validateTagId(tags, userId)
@@ -161,15 +142,15 @@ router.post('/', (req, res, next) => {
       return Note.create(newNote);
     })
     .then(result => {
-      // if(result){
-      res
-        .location(`${req.originalUrl}/${result.id}`)
-        .status(201)
-        .json(result);
-      // }
-      // else{
-      //   next();
-      // }
+      if(result){
+        res
+          .location(`${req.originalUrl}/${result.id}`)
+          .status(201)
+          .json(result);
+      }
+      else{
+        next();
+      }
     })
     .catch(err => {
       if (err === 'This `folderId` is not valid') {
@@ -183,20 +164,6 @@ router.post('/', (req, res, next) => {
       next(err);
     });
 });
-
- 
-
-// Note.create(newNote)
-//   .then(result => {
-//     res
-//       .location(`${req.originalUrl}/${result.id}`)
-//       .status(201)
-//       .json(result);
-//   })
-//   .catch(err => {
-//     next(err);
-//   });
-
 
 /* ========== PUT/UPDATE A SINGLE ITEM ========== */
 router.put('/:id', (req, res, next) => {
@@ -233,8 +200,13 @@ router.put('/:id', (req, res, next) => {
   }
 
   const updateNote = { title, content, folderId, tags };
-
-  Note.findOneAndUpdate({_id: id, userId}, updateNote, { new: true })
+  Promise.all([
+    validateFolderId(folderId, userId),
+    validateTagId(tags, userId)
+  ])
+    .then(() => {
+      return Note.findOneAndUpdate({_id: id, userId}, updateNote, { new: true });
+    })
     .then(result => {
       if (result) {
         res.json(result);
