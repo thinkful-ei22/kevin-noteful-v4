@@ -126,7 +126,7 @@ router.post('/', (req, res, next) => {
   if (tags) {
     tags.forEach((tag) => {
       if (!mongoose.Types.ObjectId.isValid(tag)) {
-        console.log('==================',tag);
+        // console.log('==================',tag);
         const err = new Error('The tags `id` is not valid');
         err.status = 400;
         return next(err);
