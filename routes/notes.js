@@ -14,11 +14,11 @@ function validateFolderId(folderId, userId){
     return Promise.resolve();
   }
 
-  if(folderId === ''){
-    const err = new Error ('You need a `folderId` name');
-    err.status = 400;
-    return Promise.reject(err);
-  }
+  // if(folderId === ''){
+  //   const err = new Error ('You need a `folderId` name');
+  //   err.status = 400;
+  //   return Promise.reject(err);
+  // }
 
   return Folder.count({_id: folderId, userId})
     .then(count => {

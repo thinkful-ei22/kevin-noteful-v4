@@ -174,7 +174,7 @@ const noteful = (function () {
         id: store.currentNote.id,
         title: editForm.find('.js-note-title-entry').val(),
         content: editForm.find('.js-note-content-entry').val(),
-        folderId: editForm.find('.js-note-folder-entry').val(),
+        folderId: editForm.find('.js-note-folder-entry').val() === '' ? undefined : editForm.find('.js-note-folder-entry').val(),
         tags: editForm.find('.js-note-tags-entry').val()
       };
 
@@ -259,6 +259,9 @@ const noteful = (function () {
       event.preventDefault();
 
       const newFolderEl = $('.js-new-folder-entry');
+      if(newFolderEl.val().trim() === ''){
+        return;
+      }
       api.create('/api/folders', { name: newFolderEl.val() })
         .then(() => {
           newFolderEl.val('');
