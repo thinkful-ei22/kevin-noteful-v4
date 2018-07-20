@@ -42,10 +42,11 @@ exports.getFolderIdHandler = (req, res, next) => {
 };
 
 exports.postFolderHandler = (req, res, next) => {
-  const { name } = req.body;
+  let { name } = req.body;
   const userId = req.user.id;
+
   
-  const newFolder = { name, userId };
+  
   
   /***** Never trust users - validate input *****/
   if (!name) {
@@ -54,6 +55,19 @@ exports.postFolderHandler = (req, res, next) => {
     return next(err);
   }
   
+  if(name.indexOf(' ') >= 0){
+    if(name.trim() === ''){
+      const err = new Error('Need a folder `name`');
+      err.status = 400;
+      return next(err);
+    }
+    else{
+      name = name.trim();
+    }
+  }
+  
+  const newFolder = { name, userId };
+
   Folder.create(newFolder)
     .then(result => {
       res.location(`${req.originalUrl}/${result.id}`).status(201).json(result);

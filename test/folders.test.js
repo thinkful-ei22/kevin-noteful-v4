@@ -185,6 +185,18 @@ describe('Noteful API - Folders', function () {
         });
     });
 
+    it('should return a 400 error for passing a whitespace into folder name', function () {
+      const newItem = { name: '   ' };
+      return chai.request(app)
+        .post('/api/folders')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newItem)
+        .then(res => {
+          expect(res).to.have.status(400);
+          expect(res.body.message).to.equal('Need a folder `name`');
+        });
+    });
+
   });
 
   describe('PUT /api/folders/:id', function () {

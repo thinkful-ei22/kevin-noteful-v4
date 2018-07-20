@@ -104,21 +104,22 @@ exports.getNoteIdHandler = (req, res, next) => {
 };
 
 exports.postNoteHandler = (req, res, next) => {
-  const { title, content, folderId, tags = []} = req.body;
+  const { title, content, tags = []} = req.body;
   const userId = req.user.id;
   
+  const folderId = req.body.folderId === '' ? undefined : req.body.folderId;
   /***** Never trust users - validate input *****/
-  if (folderId && !mongoose.Types.ObjectId.isValid(folderId)) {
+  if (/* ( */folderId /* || folderId === '') */ && !mongoose.Types.ObjectId.isValid(folderId)) {
     const err = new Error('The `folderId` is not valid');
     err.status = 400;
     return next(err);
   }
   
-  if(folderId === ' '){
-    const err = new Error('The `folderId` needs a name');
-    err.status = 400;
-    return next(err);
-  }
+  //   if(folderId === ' '){
+  //     const err = new Error('The `folderId` needs a name');
+  //     err.status = 400;
+  //     return next(err);
+  //   }
   
   // if (tags && !mongoose.Types.ObjectId.isValid(tags)) {
   //   const err = new Error('The `tagId` is not valid');

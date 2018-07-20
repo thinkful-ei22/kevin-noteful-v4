@@ -294,6 +294,23 @@ describe('Noteful API - Notes', function () {
         });
     });
 
+    it('should return an okay when `folderId` is an empty string', function () {
+      const newItem = {
+        title: 'What about dogs?!',
+        content: 'Lorem ipsum dolor sit amet, sed do eiusmod tempor...',
+        folderId: ''
+      };
+      return chai.request(app)
+        .post('/api/notes')
+        .set('Authorization', `Bearer ${token}`)
+        .send(newItem)
+        .then(res => {
+          expect(res).to.have.status(201);
+          expect(res).to.be.json;
+          expect(res.body).to.be.a('object');
+        });
+    });
+
     it('should return an error when a tags `id` is not valid ', function () {
       const newItem = {
         title: 'What about dogs?!',
