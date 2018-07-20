@@ -9,9 +9,17 @@ const Folder = require('../models/folder');
 const Tag = require('../models/tag');
 
 function validateFolderId(folderId, userId){
+  // console.log('======================', folderId === '');
   if (folderId === undefined) {
     return Promise.resolve();
   }
+
+  if(folderId === ''){
+    const err = new Error ('You need a `folderId` name');
+    err.status = 400;
+    return Promise.reject(err);
+  }
+
   return Folder.count({_id: folderId, userId})
     .then(count => {
       console.log('ttttttttttttttttttttt', count);
@@ -111,6 +119,13 @@ router.post('/', (req, res, next) => {
     err.status = 400;
     return next(err);
   }
+
+  if(folderId === ' '){
+    const err = new Error('The `folderId` needs a name');
+    err.status = 400;
+    return next(err);
+  }
+
   // if (tags && !mongoose.Types.ObjectId.isValid(tags)) {
   //   const err = new Error('The `tagId` is not valid');
   //   err.status = 400;
